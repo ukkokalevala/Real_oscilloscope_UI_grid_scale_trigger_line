@@ -1,0 +1,84 @@
+import processing.serial.*;
+
+Serial myPort;
+
+int[] buffer = new int[600];  // waveform buffer
+int index = 0;
+
+void setup() {
+  size(800, 400);
+  
+  println(Serial.list()); // find your port
+  myPort = new Serial(this, Serial.list()[1], 115200);
+  
+  background(0);
+}
+
+void draw() {
+  background(0);
+
+  drawGrid();
+  drawTriggerLine();
+  drawWaveform();
+  drawScaleText();
+}
+
+void serialEvent(Serial myPort) {
+  String data = myPort.readStringUntil('\n');
+  
+  if (data != null) {
+    data = trim(data);
+    int value = int(data);
+
+    buffer[index] = value;
+    index = (index + 1) % buffer.length;
+  }
+}
+
+void drawGrid() {
+  stroke(50);
+
+  // vertical lines
+  for (int x = 0; x < width; x += 50) {
+    line(x, 0, x, height);
+  }
+
+  // horizontal lines
+  for (int y = 0; y < height; y += 50) {
+    line(0, y, width, y);
+  }
+
+  // center line (brighter)
+  stroke(100);
+  line(0, height/2, width, height/2);
+}
+
+void drawTriggerLine() {
+  stroke(255, 0, 0);
+  line(0, height/2, width, height/2);
+}
+
+void drawWaveform() {
+  stroke(0, 255, 0);
+  noFill();
+
+  beginShape();
+
+  for (int i = 0; i < buffer.length; i++) {
+    int x = i;
+    int y = int(height - map(buffer[(index + i) % buffer.length], 0, 4095, 0, height));
+
+    vertex(x, y);
+  }
+
+  endShape();
+}
+
+void drawScaleText() {
+  fill(0, 255, 0);
+  textSize(12);
+
+  text("Voltage: 0 - 3.3V", 10, 20);
+  text("Time Base: Live", 10, 40);
+  text("ESP32-C3 Scope", 10, 60);
+}
