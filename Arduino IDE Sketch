@@ -1,0 +1,9 @@
+void setup() {
+  Serial.begin(115200);
+}
+
+void loop() {
+  int value = analogRead(1); // your pin
+  Serial.println(value);
+  delay(2); // adjust for speed
+}
